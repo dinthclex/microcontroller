@@ -1,0 +1,881 @@
+	<!DOCTYPE html>
+	<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>AT89S52 Simulação Completa</title>
+		<style>
+			body {
+				font-family: sans-serif;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				min-height: 100vh;
+				margin: 0;
+				background-color: #f0f0f0;
+				padding: 20px;
+			}
+
+			/* Estilos Gerais */
+			h1 {
+				text-align: center;
+				width: 100%;
+				margin-bottom: 20px;
+			}
+
+			/* Layout Principal (Tabela - Bancos - Microcontrolador) */
+			
+			.grupo-coluna {
+				padding: 3% 3% 0 3%;
+			}
+			
+			
+			/* Estilos dos Bancos de Registradores */
+			.bancos-container {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+					//padding-left: 10%;  /* Adiciona margem à esquerda */
+			}
+
+			.bancos-row {
+				display: flex;
+				justify-content: center;
+				margin-bottom: 20px;
+			}
+
+			.banco-container {
+				margin: 0 10px;
+				text-align: center;
+			}
+
+			.banco {
+				width: 100px;
+				border: 1px solid #555;
+				padding: 5px;
+				display: flex;
+				flex-direction: column;
+				box-sizing: border-box;
+			}
+
+			.banco-titulo {
+				font-weight: bold;
+				margin-bottom: 5px;
+			}
+
+			.registrador {
+				border: 1px solid #777;
+				margin: 2px 0;
+					//padding: 5px;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 1px 5px;
+			}
+
+			.registrador-nome {
+				font-size: 0.8em;
+			}
+			
+			/* Estilos hud */
+			#hud {
+				padding: 0% 0% 5% 0%;
+			}
+			
+			/* slider */
+			.slider-container {
+				min-width: 18em;
+			}
+
+			/* Estilos do Microcontrolador */
+			.microcontrolador-container {
+					//width: 30%;
+					//max-width: 200px;
+				height: 600px;
+				padding: 0 2%; /* Adiciona margem à esquerda */
+				box-sizing: border-box;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+
+			.microcontrolador {
+				width: 200px;
+				height: 700px;
+				background-color: black;
+				position: relative;
+				box-shadow: 1px 1px 10px rgba(0, 0, 0, 1);
+			}
+
+			.pino {
+				width: 10px;
+				height: 2px;
+				background-color: #838383;
+				position: absolute;
+				cursor: pointer; /* Adicionado para indicar que o pino é interativo */
+			}
+			.pinoAtivo {
+				background-color: Yellow;
+			}
+
+			.pino-label {
+				position: absolute;
+				font-size: 0.6em;
+				color: white;
+				white-space: nowrap;
+			}
+
+			.pino-label-esquerda {
+				right: 15px;
+				text-align: right;
+			}
+
+			.pino-label-direita {
+				left: 15px;
+				text-align: left;
+			}
+			/* Estilo para a função que aparece no hover */
+			.pino-funcao {
+				position: absolute;
+				background-color: rgba(0, 0, 0, 0.8);
+				color: white;
+				padding: 5px;
+				border-radius: 5px;
+				font-size: 0.7em;
+				z-index: 10;
+				display: none; /* Inicialmente escondido */
+			}
+
+			.pino:hover + .pino-funcao {
+				display: block; /* Mostra a função no hover */
+			}
+
+			/* Estilos da Tabela de Instruções */
+			.tabela-instrucoes {
+				width: auto;  /* Largura automática */
+				max-width: none;  /* Sem largura máxima */
+				//display: flex;
+				flex-wrap: wrap;  /* Permitir quebra de linha */
+				box-sizing: border-box;
+			}
+			
+			#instructionsColumn {
+				display: flex;
+				width: auto;  /* Largura da coluna */
+				border: 1px solid #ccc;
+				box-sizing: border-box;
+			}
+
+			.instrucao {
+				background-color: #f0f0f0;
+				padding: 5px;
+					//margin-bottom: 5px;
+				border-radius: 3px;
+				font-size: 1em;
+				line-height: 1;
+				white-space: pre-wrap;
+				font-family: monospace;
+			}
+
+			 /* Adicionado para quebrar para a coluna da direita caso não caiba na tela */
+			.main-content {
+				display: flex;
+				flex-direction: row;  /* Alinha os elementos na horizontal */
+				flex-wrap: wrap;       /* Permite a quebra de linha */
+				justify-content: center; /* Alinha os elementos à esquerda */
+				align-items: flex-start;   /* Alinha os elementos no topo */
+				width: 100%;
+						//max-width: 1400px;
+			}
+
+			.tabela-instrucoes {
+				width: auto;        /* Largura automática */
+				max-width: none;    /* Sem largura máxima */
+				flex: none;         /* Não expande ou encolhe */
+			}
+
+			.coluna {
+				width: 100%;       /* Largura da coluna */
+				min-width: 200px;   /* Largura mínima */
+			}
+			.instrucao.active {
+		background-color: yellow;
+	}
+
+		/* semáforo */
+		.semaforo-container {
+				//padding-left: 150px
+		}
+		.semaforo {
+				width: 80px;
+				height: 200px;
+				background-color: black;
+				border: 2px solid gray;
+				border-radius: 10px;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-around;
+				align-items: center;
+			}
+
+			.luz {
+				width: 50px;
+				height: 50px;
+				border-radius: 50%;
+				background-color: #333; /* Cor escura para desligado */
+				border: 1px solid gray;
+			}
+
+			.vermelho {
+				background-color: red;
+			}
+
+			.amarelo {
+				background-color: yellow;
+			}
+
+			.verde {
+				background-color: green;
+			}
+			
+			
+		/* semáforo */
+		</style>
+	</head>
+	<body>
+		<h1>AT89S52 Microcontrolador</h1>
+		<div class="main-content">
+			<!-- Tabela de Instruções -->
+			<div class="tabela-instrucoes">
+				 <h2>Instruções Assembly</h2>
+				<div class="coluna" id="instructionsColumn">
+					<!-- As instruções serão inseridas aqui -->
+				</div>
+			</div>
+			
+			<div class="grupo-coluna">
+				<div id="hud">
+					<!-- Slider para controlar a velocidade -->
+					<div class="slider-container">
+						<label for="speedSlider">Velocidade:</label>
+						<input type="range" id="speedSlider" min="1" max="1000" value="80">
+						<span id="speedValue">1000ms</span>
+					</div>
+
+					<!-- Contador de Instruções -->
+					<div id="instructionCounter">Instruções Executadas: 0</div>
+					
+					<div id="completeInstruction">Instruções Atual: </div>
+				</div>
+				
+				<!-- Bancos de Registradores -->
+				<div class="bancos-container">
+					<div class="bancos-row">
+						<div class="banco-container">
+							<div class="banco-titulo">Banco 0</div>
+							<div class="banco" id="banco0">
+								<!-- Registradores do Banco 0 -->
+								<div class="registrador r0"> <span class="registrador-nome">R0</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r1"> <span class="registrador-nome">R1</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r2"> <span class="registrador-nome">R2</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r3"> <span class="registrador-nome">R3</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r4">  <span class="registrador-nome">R4</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r5">  <span class="registrador-nome">R5</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r6">  <span class="registrador-nome">R6</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r7">  <span class="registrador-nome">R7</span> <span class="registrador-valor">00</span></div>
+							</div>
+						</div>
+						<div class="banco-container">
+							<div class="banco-titulo">Banco 1</div>
+							<div class="banco" id="banco1">
+								<!-- Registradores do Banco 1 -->
+								<div class="registrador r0"> <span class="registrador-nome">R0</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r1"> <span class="registrador-nome">R1</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador reg2"> <span class="registrador-nome">R2</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r3"> <span class="registrador-nome">R3</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r4">  <span class="registrador-nome">R4</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r5">  <span class="registrador-nome">R5</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r6">  <span class="registrador-nome">R6</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r7">  <span class="registrador-nome">R7</span> <span class="registrador-valor">00</span></div>
+							</div>
+						</div>
+					</div>
+					<div class="bancos-row">
+						<div class="banco-container">
+							<div class="banco-titulo">Banco 2</div>
+							<div class="banco" id="banco2">
+								<!-- Registradores do Banco 2 -->
+								<div class="registrador r0"> <span class="registrador-nome">R0</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r1"> <span class="registrador-nome">R1</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador reg2"> <span class="registrador-nome">R2</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r3"> <span class="registrador-nome">R3</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r4">  <span class="registrador-nome">R4</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r5">  <span class="registrador-nome">R5</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r6">  <span class="registrador-nome">R6</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r7">  <span class="registrador-nome">R7</span> <span class="registrador-valor">00</span></div>
+							</div>
+						</div>
+						<div class="banco-container">
+							<div class="banco-titulo">Banco 3</div>
+							<div class="banco" id="banco3">
+								<!-- Registradores do Banco 3 -->
+								<div class="registrador r0"> <span class="registrador-nome">R0</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r1"> <span class="registrador-nome">R1</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador reg2"> <span class="registrador-nome">R2</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r3"> <span class="registrador-nome">R3</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r4">  <span class="registrador-nome">R4</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r5">  <span class="registrador-nome">R5</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r6">  <span class="registrador-nome">R6</span> <span class="registrador-valor">00</span></div>
+								<div class="registrador r7">  <span class="registrador-nome">R7</span> <span class="registrador-valor">00</span></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Microcontrolador -->
+			<div class="microcontrolador-container">
+				<h2>AT89S52 Microcontrolador</h2>
+				<div class="microcontrolador" id="microcontrolador">
+					<!-- Os pinos serão inseridos aqui pelo JavaScript -->
+				</div>
+			</div>
+			
+			<!-- semáforo -->
+			<div class="semaforo-container">
+				<div id="semaforo1" class="semaforo">
+					<div class="luz luzA vermelho"></div>
+					<div class="luz luzB amarelo"></div>
+					<div class="luz luzC verde"></div>
+				</div>
+				<div id="semaforo2" class="semaforo">
+					<div class="luz luzA vermelho"></div>
+					<div class="luz luzB amarelo"></div>
+					<div class="luz luzC verde"></div>
+				</div>
+			</div>
+		</div>
+		<footer>
+			<h3>Sobre este simulador</h3>
+			<p>
+			A ideia inicial era apenas fazer o código rodar como nesse vídeo (<a href="www.youtube.com/watch?v=kBvVzECPXgo">link</a>). No vídeo não tem como interagir, apenas mudar o instante do vídeo com a barra de temporização do YouTube.<br/>
+			Nesse HTML, é possível alterar a velocidade; os tempos, diretamente no HTML; e os desenhos, pois o arquivo é editável.
+			Tinha essa ideia, mas nunca consegui a desenvolver. <br/>Em alguns testes no aistudio.google.com (com o Gemini 2.0 Flash), teve como resultado este projeto.
+			</p>
+			<q cite="https://www.bible.com/pt/bible/1608/ACT.16.31-34">Responderam-lhe: Crê no Senhor Jesus e serás salvo, tu e tua casa.</q> Atos 16:31
+			<h4>16 de março de 2025</h4>
+		</footer>
+
+		 <!-- Scripts -->
+		<script>
+		//semáforo
+		function semaforo(id, s){
+			let vermelho = document.querySelector("#"+id+" .luzA");
+			let amarelo = document.querySelector("#"+id+" .luzB");
+			let verde = document.querySelector("#"+id+" .luzC");
+			
+			
+			switch(s){
+				case "red":
+					vermelho.classList.add('vermelho');
+					amarelo.classList.remove('amarelo');
+					verde.classList.remove('verde');
+					break;
+				
+				case "yellow":
+					vermelho.classList.remove('vermelho');
+					amarelo.classList.add('amarelo');
+					verde.classList.remove('verde');
+					break;
+				
+				case "green":
+					vermelho.classList.remove('vermelho');
+					amarelo.classList.remove('amarelo');
+					verde.classList.add('verde');
+					break;
+				
+				default:
+					vermelho.classList.remove('vermelho');
+					amarelo.classList.remove('amarelo');
+					verde.classList.remove('verde');
+			}
+		}
+		semaforo("semaforo1","");
+		semaforo("semaforo2","");
+		function updateSemaforo(){
+			//semáforo 1
+				   if(p3_5){
+				semaforo("semaforo1", "red");
+			} else if(p3_4){
+				semaforo("semaforo1", "yellow");
+			} else if(p3_3){
+				semaforo("semaforo1", "green");
+			}
+			
+			//semáforo 2
+				   if(p3_2){
+				semaforo("semaforo2", "red");
+			} else if(p3_1){
+				semaforo("semaforo2", "yellow");
+			} else if(p3_0){
+				semaforo("semaforo2", "green");
+			}
+		}
+		
+			// Variáveis para controlar a execução
+			let currentInstruction = 0;
+			let intervalId;
+			let lastInstruction = null;
+			let executedInstructionsCount = 0;
+
+			// Variáveis de estado para os pinos da Porta 3
+			let p3_0 = 0;
+			let p3_1 = 0;
+			let p3_2 = 0;
+			let p3_3 = 0;
+			let p3_4 = 0;
+			let p3_5 = 0;
+			let p3_6 = 0;
+			let p3_7 = 0;
+			
+			// Variável para os bancos;
+			var bank = "banco0"; // banco0, banco1, banco2 e banco3
+
+			// Variáveis para os registradores
+			let r0 = 0;
+			let r1 = 0;
+			let r2 = 0;
+			let r3 = 0;
+			let r4 = 0;
+			let r5 = 0;
+			let r6 = 0;
+			let r7 = 0;
+		   // Slider de velocidade
+			const speedSlider = document.getElementById('speedSlider');
+			const speedValue = document.getElementById('speedValue');
+
+			 // Mapeamento dos elementos dos registradores
+			 const registerElements = {
+				r0: document.querySelector("#banco0 .r0 .registrador-valor"),
+				r1: document.querySelector("#banco0 .r1 .registrador-valor"),
+				r2: document.querySelector("#banco0 .r2 .registrador-valor"),
+				r3: document.querySelector("#banco0 .r3 .registrador-valor"),
+				r4: document.querySelector("#banco0 .r4 .registrador-valor"),
+				r5: document.querySelector("#banco0 .r5 .registrador-valor"),
+				r6: document.querySelector("#banco0 .r6 .registrador-valor"),
+				r7: document.querySelector("#banco0 .r7 .registrador-valor")
+			};
+			
+			// Script para os Bancos de Registradores (criação dos elementos)
+			const numBancos = 4;
+			const numRegistradores = 8;
+
+			
+		
+
+		   // Script para o Microcontrolador
+			const microcontrolador = document.getElementById('microcontrolador');
+			const numPinos = 40;
+			const alturaMicrocontrolador = microcontrolador.offsetHeight;
+			const espacamentoEntrePinos = alturaMicrocontrolador / ((numPinos / 2) + 1);
+			
+			microcontrolador.innerHTML = ''; // Limpa o microcontrolador para refazer
+
+			// Mapeamento dos pinos (Número do Pino -> Nome e Função no Datasheet)
+			const pinoInfo = {
+				1:  { nome: "(T2) P1.0",    funcao: "Timer 2 External Clock Input, Port 1, Bit 0" },
+				2:  { nome: "(T2EX) P1.1",   funcao: "Timer 2 Trigger Input/Output, Port 1, Bit 1" },
+				3:  { nome: "P1.2",    funcao: "Port 1, Bit 2" },
+				4:  { nome: "P1.3",    funcao: "Port 1, Bit 3" },
+				5:  { nome: "P1.4",    funcao: "Port 1, Bit 4" },
+				6:  { nome: "P1.5",    funcao: "Port 1, Bit 5" },
+				7:  { nome: "P1.6",    funcao: "Port 1, Bit 6" },
+				8:  { nome: "P1.7",    funcao: "Port 1, Bit 7" },
+				9:  { nome: "RST",     funcao: "Reset Input" },
+				10: { nome: "P3.0 (RxD)",     funcao: "Receive Data (Serial Input Port)" },
+				11: { nome: "P3.1 (TxD)",     funcao: "Transmit Data (Serial Output Port)" },
+				12: { nome: "P3.2 (INT0)",    funcao: "External Interrupt 0" },
+				13: { nome: "P3.3 (INT1)",    funcao: "External Interrupt 1" },
+				14: { nome: "P3.4 (T0)",      funcao: "Timer 0 External Input" },
+				15: { nome: "P3.5 (T1)",      funcao: "Timer 1 External Input" },
+				16: { nome: "P3.6 (WR)",      funcao: "External Data Memory Write Strobe" },
+				17: { nome: "P3.7 (RD)",      funcao: "External Data Memory Read Strobe" },
+				18: { nome: "XTAL2",    funcao: "Output from Inverting Oscillator Amplifier" },
+				19: { nome: "XTAL1",    funcao: "Input to Inverting Oscillator Amplifier" },
+				20: { nome: "GND",      funcao: "Ground" },
+				21: { nome: "P2.0 (A8)",    funcao: "Port 2, Bit 0, Address Bit 8" },
+				22: { nome: "P2.1 (A9)",    funcao: "Port 2, Bit 1, Address Bit 9" },
+				23: { nome: "P2.2 (A10)",   funcao: "Port 2, Bit 2, Address Bit 10" },
+				24: { nome: "P2.3 (A11)",   funcao: "Port 2, Bit 3, Address Bit 11" },
+				25: { nome: "P2.4 (A12)",   funcao: "Port 2, Bit 4, Address Bit 12" },
+				26: { nome: "P2.5 (A13)",   funcao: "Port 2, Bit 5, Address Bit 13" },
+				27: { nome: "P2.6 (A14)",   funcao: "Port 2, Bit 6, Address Bit 14" },
+				28: { nome: "P2.7 (A15)",   funcao: "Port 2, Bit 7, Address Bit 15" },
+				29: { nome: "PSEN",     funcao: "Program Store Enable" },
+				30: { nome: "ALE/PROG", funcao: "Address Latch Enable/Program Pulse" },
+				31: { nome: "EA/VPP",   funcao: "External Access Enable/Programming Voltage" },
+				32: { nome: "P0.7 (AD7)",    funcao: "Port 0, Bit 7, Address/Data Bit 7" },
+				33: { nome: "P0.6 (AD6)",    funcao: "Port 0, Bit 6, Address/Data Bit 6" },
+				34: { nome: "P0.5 (AD5)",    funcao: "Port 0, Bit 5, Address/Data Bit 5" },
+				35: { nome: "P0.4 (AD4)",    funcao: "Port 0, Bit 4, Address/Data Bit 4" },
+				36: { nome: "P0.3 (AD3)",    funcao: "Port 0, Bit 3, Address/Data Bit 3" },
+				37: { nome: "P0.2 (AD2)",    funcao: "Port 0, Bit 2, Address/Data Bit 2" },
+				38: { nome: "P0.1 (AD1)",    funcao: "Port 0, Bit 1, Address/Data Bit 1" },
+				39: { nome: "P0.0 (AD0)",    funcao: "Port 0, Bit 0, Address/Data Bit 0" },
+				40: { nome: "VCC",      funcao: "Supply Voltage" }
+			};
+
+			for (let i = 1; i <= numPinos; i++) {
+			let novoIndice = 41 - i;
+				const pino = document.createElement('div');
+				pino.classList.add('pino');
+				pino.classList.add('pino'+novoIndice);
+
+				const pinoLabel = document.createElement('div');
+				pinoLabel.classList.add('pino-label');
+				pinoLabel.textContent = `${i} ${pinoInfo[i].nome}`; // Exibe "Número Nome"
+
+				const pinoFuncao = document.createElement('div');
+				pinoFuncao.classList.add('pino-funcao');
+				pinoFuncao.textContent = pinoInfo[i].funcao; // Armazena a função para o hover
+
+				let topPosition;
+				let leftPosition;
+				let labelSide;
+				
+
+				if (novoIndice <= numPinos / 2) {
+					// Lado esquerdo: Pinos de cima para baixo
+					topPosition = novoIndice * espacamentoEntrePinos;
+					leftPosition = -10;
+					labelSide = 'right';
+				} else {
+					// Lado direito: Pinos de baixo para cima
+					topPosition = (numPinos - novoIndice + 1) * espacamentoEntrePinos;
+					topPosition = (numPinos - novoIndice + 1) * espacamentoEntrePinos;
+					leftPosition = 'auto';
+					pino.style.right = '-10px';
+					labelSide = 'left';
+				}
+
+				pino.style.top = `${topPosition - 1}px`;
+				pino.style.left = (leftPosition === 'auto') ? 'auto' : `${leftPosition}px`;
+
+				pinoLabel.style.top = `${topPosition - 7}px`;
+
+				if (labelSide === 'right') {
+					pinoLabel.classList.add('pino-label-esquerda');
+				} else {
+					pinoLabel.classList.add('pino-label-direita');
+				}
+
+				pinoFuncao.style.top = `${topPosition + 5}px`; // Ajusta a posição da função
+				if (labelSide === 'right') {
+					pinoFuncao.style.right = '15px';
+				} else {
+					pinoFuncao.style.left = '15px';
+				}
+
+				microcontrolador.appendChild(pino);
+				microcontrolador.appendChild(pinoLabel);
+				microcontrolador.appendChild(pinoFuncao); // Adiciona a função ao microcontrolador
+			}
+			const instrucoes = [
+				"INICIO:\nclr p3.0",
+				"clr p3.1",
+				"clr p3.3",
+				"clr p3.4",
+				"setb p3.5",
+				"setb p3.2",
+				"tempo: mov r2, #01h",
+				"pulo3: mov r1, #02h",
+				"pulo2: mov r0, #0Ah",
+				"pulo:  djnz r0, pulo",
+				"       djnz r1, pulo2",
+				"       djnz r2, pulo3",
+				"       clr p3.2",
+				"INICIO1:\nsetb p3.5",
+				"setb p3.0",
+				"tempo1: mov r2, #01h",
+				"pulo6: mov r1, #02h",
+				"pulo5: mov r0, #01Eh",
+				"pulo4: djnz r0, pulo4",
+				"       djnz r1, pulo5",
+				"       djnz r2, pulo6",
+				"       clr p3.0",
+				"setb p3.1",
+				"tempo2: mov r2, #01h",
+				"pulo9: mov r1, #02h",
+				"pulo8: mov r0, #0Ah",
+				"pulo7: djnz r0, pulo7",
+				"       djnz r1, pulo8",
+				"       djnz r2, pulo9",
+				"clr p3.1",
+				"clr p3.5",
+				"setb p3.2",
+				"setb p3.3",
+				"tempo3: mov r2, #01h",
+				"pulo12: mov r1, #02h",
+				"pulo11: mov r0, #01Eh",
+				"pulo10: djnz r0, pulo10",
+				"        djnz r1, pulo11",
+				"        djnz r2, pulo12",
+				"        clr p3.3",
+				"setb p3.4",
+				"tempo4: mov r2, #01h",
+				"pulo15: mov r1, #02h",
+				"pulo14: mov r0, #0Ah",
+				"pulo13: djnz r0, pulo13",
+				"        djnz r1, pulo14",
+				"        djnz r2, pulo15",
+				"        clr p3.4",
+				"        clr p3.2",
+				"        ljmp inicio1",
+				"end"
+			];
+
+			const colunaDiv = document.querySelector('.tabela-instrucoes .coluna');
+			let instrucaoDivs = []; // Armazena os divs das instruções
+
+			instrucoes.forEach(instrucao => {
+				const instrucaoDiv = document.createElement('div');
+				instrucaoDiv.classList.add('instrucao');
+				instrucaoDiv.textContent = instrucao;
+				colunaDiv.appendChild(instrucaoDiv);
+				instrucaoDivs.push(instrucaoDiv); // Adiciona ao array
+			});
+			
+			 speedSlider.addEventListener('input', function() {
+				speedValue.textContent = `${this.value}ms`;
+				startExecution(); // Reinicia a execução com a nova velocidade
+			});
+
+			function updateRegisterDisplay(register, value) {
+				const registerElement = document.querySelector("#"+bank+" ."+register);
+				if (registerElement) {
+					registerElement.querySelector('.registrador-valor').textContent = value;
+				} else {
+				}
+			}
+		
+		function executeInstruction() {
+
+			  // Remove a classe 'active' da instrução anterior
+			  if (lastInstruction !== null) {
+				  instrucaoDivs[lastInstruction].classList.remove('active');
+			  }
+
+			  // Verifica se chegamos ao final ou se não devemos executar a próxima linha
+			  if (currentInstruction >= instrucoes.length) {
+				  currentInstruction = 0; // Reinicia
+				  executedInstructionsCount = 0; // Reinicia o contador
+			  }
+
+			  // *NOVA VERIFICAÇÃO*: Verifica se currentInstruction está dentro dos limites
+			  if (currentInstruction < 0 || currentInstruction >= instrucoes.length) {
+				  console.error("currentInstruction fora dos limites:", currentInstruction);
+				 return;  // Interrompe a execução se estiver fora dos limites
+			 }
+
+				instrucaoDivs[currentInstruction].classList.add('active');
+			 lastInstruction = currentInstruction; 
+		  
+					let instrucaoCompleta = instrucoes[currentInstruction];
+				console.log(`Executando: ${instrucaoCompleta}`);
+			  
+				executedInstructionsCount++;
+				document.getElementById('instructionCounter').textContent = `Instruções Executadas: ${executedInstructionsCount}`;
+			
+				// Remove comentários e espaços em branco
+				instrucaoCompleta = instrucaoCompleta.split(';')[0].trim();
+
+				// Analisa a instrução
+				var label = "";
+				if(instrucaoCompleta.search(":") !== -1){
+					label = instrucaoCompleta.split(":")[0].trim();
+					instrucaoCompleta = instrucaoCompleta.split(":")[1].trim();
+				}
+				const [nomeInstrucao, ...operandos] = instrucaoCompleta.split(/\s+|,\s*/);
+				console.log(`Nome da instrução: ${nomeInstrucao}`);
+				console.log(`Operandos: ${operandos}`);
+				
+				document.getElementById("completeInstruction").innerHTML = "Instruções Atual: <span class='instrucao'>" + instrucaoCompleta + "</span>";
+				
+				 switch (nomeInstrucao) {
+				case "clr":
+					if (operandos[0] === "p3.0") p3_0 = 0;
+					if (operandos[0] === "p3.1") p3_1 = 0;
+					if (operandos[0] === "p3.2") p3_2 = 0;
+					if (operandos[0] === "p3.3") p3_3 = 0;
+					if (operandos[0] === "p3.4") p3_4 = 0;
+					if (operandos[0] === "p3.5") p3_5 = 0;
+					currentInstruction++;
+					break;
+				case "setb":
+					if (operandos[0] === "p3.0") p3_0 = 1;
+					if (operandos[0] === "p3.1") p3_1 = 1;
+					if (operandos[0] === "p3.2") p3_2 = 1;
+					if (operandos[0] === "p3.3") p3_3 = 1;
+					if (operandos[0] === "p3.4") p3_4 = 1;
+					if (operandos[0] === "p3.5") p3_5 = 1;
+					currentInstruction++;
+					break;
+				case "mov":
+					let valorMov;
+					valorMov = parseInt(operandos[1].match(/[0-9A-Fa-f]+/), 16);
+					console.log("passou aqui: valorMov:"+valorMov);
+				   if (operandos[0] === "r2") {
+						 r2 = valorMov;
+						 updateRegisterDisplay('r2', r2);
+					}
+					else if (operandos[0] === "r1") {
+						r1 =  valorMov;
+						updateRegisterDisplay('r1', r1);
+					}
+					 else if (operandos[0] === "r0") {
+						 r0 =  valorMov;
+					   updateRegisterDisplay('r0', r0);
+					}
+					currentInstruction++;
+				 break;
+				  case "djnz":
+				   // Encontra o valor atual de qual registrador deve ser decrementado
+				   let registrador;
+				   let registradorValue;
+					let registerToDecrement = operandos[0];
+					let jumpToLabel = operandos[1];
+
+					 // Descobre o registrador que deve ser alterado
+					 if (registerToDecrement === "r0") {
+							r0--;
+							if(r0 == 0){
+								currentInstruction++;
+							}
+							registrador = "r0";
+							registradorValue = r0;
+						} else if (registerToDecrement === "r1") {
+							r1--;
+							if(r1 == 0){
+								currentInstruction++;
+							}
+							registrador = "r1";
+							registradorValue = r1;
+						} else if (registerToDecrement === "r2") {
+							r2--;
+							if(r2 == 0){
+								currentInstruction++;
+							}
+							registrador = "r2";
+							registradorValue = r2;
+						}
+
+					 if (registradorValue === undefined) {
+						console.error("Registrador inválido:", operandos[0]);
+						break;
+					 }
+				   updateRegisterDisplay(registrador, registradorValue)
+
+					 // Encontra a label para a qual devemos pular caso o valor seja diferente de zero
+					  if (registradorValue > 0) {
+						  const jumpToLabel = operandos[1];
+						  currentInstruction = instrucoes.findIndex(inst => {
+							  const instrucaoLower = inst.toLowerCase();
+							  return instrucaoLower.includes(jumpToLabel.toLowerCase() + ":");
+						  });
+						  if (currentInstruction === -1) {
+							 console.error("Label não encontrada:", jumpToLabel);
+						}
+						   break;
+					  }
+					break;
+					 case "ljmp":
+						  const ljmpToLabel = operandos[0];
+						  currentInstruction = instrucoes.findIndex(inst => {
+							  const instrucaoLower = inst.toLowerCase();
+							  return instrucaoLower.includes(ljmpToLabel.toLowerCase() + ":");
+						});
+						 if (currentInstruction === -1) {
+							 console.error("Label não encontrada:", ljmpToLabel);
+						 }
+						break; // Importante: pula para a próxima iteração
+				  default:
+						console.log("Instrução não implementada:", nomeInstrucao);
+				}
+
+					updatePinos();
+					updateSemaforo();
+		}
+	 // Atualiza a interface do microcontrolador com o estado dos pinos
+	 function updatePinos() {
+		 console.log("Pinos: ", p3_0, p3_1, p3_2, p3_3, p3_4, p3_5, p3_6, p3_7);
+		 // Simulação básica: exibe o estado dos pinos no console
+			//Aqui você implementaria a lógica para interagir com a representação visual
+			//do microcontrolador para refletir o estado dos pinos.
+			//Por exemplo, se você tiver elementos HTML representando os pinos,
+			//você pode modificar suas cores com base no valor das variáveis p3_x.
+			
+			let pinos = document.querySelector(".microcontrolador");
+			
+			//semáforo 1
+			if(p3_5){ pinos.querySelector(".pino15").classList.add("pinoAtivo"); }
+			   else { pinos.querySelector(".pino15").classList.remove("pinoAtivo"); }
+			if(p3_4){ pinos.querySelector(".pino14").classList.add("pinoAtivo"); }
+			   else { pinos.querySelector(".pino14").classList.remove("pinoAtivo"); }
+			if(p3_3){ pinos.querySelector(".pino13").classList.add("pinoAtivo"); }
+			   else { pinos.querySelector(".pino13").classList.remove("pinoAtivo"); }
+			
+			//semáforo 2
+			if(p3_2){ pinos.querySelector(".pino12").classList.add("pinoAtivo"); }
+			   else { pinos.querySelector(".pino12").classList.remove("pinoAtivo"); }
+			if(p3_1){ pinos.querySelector(".pino11").classList.add("pinoAtivo"); }
+			   else { pinos.querySelector(".pino11").classList.remove("pinoAtivo"); }
+			if(p3_0){ pinos.querySelector(".pino10").classList.add("pinoAtivo"); }
+			   else { pinos.querySelector(".pino10").classList.remove("pinoAtivo"); }
+		}
+
+			
+			function startExecution() {
+				 clearInterval(intervalId);
+				const delay = speedSlider.value;
+				intervalId = setInterval(executeInstruction, delay);
+			}
+			
+
+		function dividirEmColunas() {
+				const instrucoesDivs = document.querySelectorAll('.instrucao');
+				const instructionsColumn = document.getElementById('instructionsColumn');
+				const numInstrucoes = instrucoesDivs.length;
+
+				instructionsColumn.innerHTML = '';
+
+				const larguraTela = instructionsColumn.offsetWidth; // Use a largura do elemento pai
+				let numColunas = Math.floor(numInstrucoes / 20);
+				numColunas = Math.max(1, numColunas);
+
+				const instrucoesPorColuna = Math.ceil(numInstrucoes / numColunas);
+
+				for (let i = 0; i < numColunas; i++) {
+					const colunaDiv = document.createElement('div');
+					colunaDiv.classList.add('coluna');
+
+					for (let j = i * instrucoesPorColuna; j < Math.min((i + 1) * instrucoesPorColuna, numInstrucoes); j++) {
+						colunaDiv.appendChild(instrucoesDivs[j]);
+					}
+					instructionsColumn.appendChild(colunaDiv);
+				}
+			}
+			speedSlider.addEventListener('input', function() {
+			 speedValue.textContent = `${this.value}ms`;
+			startExecution(); // Reinicia a execução com a nova velocidade
+		 });
+
+		 dividirEmColunas();
+
+		 window.addEventListener('resize', dividirEmColunas);
+			  speedValue.textContent = `${speedSlider.value}ms`;
+
+			// Inicia a execução automaticamente
+			startExecution();
+		</script>
+	</body>
+	</html>
